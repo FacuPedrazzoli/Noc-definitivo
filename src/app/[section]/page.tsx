@@ -1,6 +1,7 @@
 import { getSectionBySlug, getAllSections, getAdjacentSections } from '@/lib/content';
 import { notFound } from 'next/navigation';
 import ContentRenderer from '@/components/ContentRenderer';
+import BackToTopButton from '@/components/BackToTopButton';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, Hash, Home, Clock } from 'lucide-react';
 import type { Metadata } from 'next';
@@ -169,13 +170,7 @@ export default function SectionPage({ params }: Props) {
 
       {/* Back to top */}
       <div className="mt-8 text-center">
-        <button
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="inline-flex items-center gap-2 text-xs text-slate-400 dark:text-slate-600
-            hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-medium"
-        >
-          ↑ Volver arriba
-        </button>
+        <BackToTopButton />
       </div>
     </div>
   );
