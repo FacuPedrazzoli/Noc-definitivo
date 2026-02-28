@@ -1,0 +1,13 @@
+{
+  "name": "sre-pagos-globales-handbook",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "mammoth": "^1.6.0",
+    "pdf-parse": "^1.1.1"
+  }
+}

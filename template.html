@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
+  <title>SRE Pagos Globales - Handbook</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" />
+
+  <style>
+    :root{
+      --bg: #0b1220;
+      --panel: #0f1a2f;
+      --panel2: #0b1426;
+      --text: #e7eefc;
+      --muted: #a8b4d6;
+      --border: rgba(255,255,255,.10);
+      --shadow: 0 10px 30px rgba(0,0,0,.25);
+      --brand: #4da3ff;
+      --brand2: #7c5cff;
+      --accent: #22c55e;
+      --code-bg: rgba(255,255,255,.06);
+      --code-border: rgba(255,255,255,.10);
+      --radius: 14px;
+      --radius-sm: 10px;
+      --sidebar-w: 290px;
+      --font-sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    [data-theme="light"]{
+      --bg: #f6f8fc;
+      --panel: #ffffff;
+      --panel2: #f2f5fb;
+      --text: #0d1b2a;
+      --muted: #4f6279;
+      --border: rgba(10,20,40,.12);
+      --shadow: 0 10px 26px rgba(20,35,55,.12);
+      --brand: #1f6fff;
+      --brand2: #6d28d9;
+      --code-bg: rgba(10,20,40,.04);
+      --code-border: rgba(10,20,40,.10);
+    }
+
+    *{ box-sizing: border-box; }
+    html, body { height: 100%; }
+    body{
+      margin: 0;
+      background: radial-gradient(1200px 800px at 20% -20%, rgba(77,163,255,.22), transparent 55%),
+                  radial-gradient(1000px 700px at 110% 10%, rgba(124,92,255,.18), transparent 55%),
+                  var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.55;
+      overflow: hidden;
+    }
+
+    a{ color: inherit; text-decoration: none; }
+    button, input { font-family: inherit; }
+
+    .app{
+      height: 100vh;
+      display: grid;
+      grid-template-columns: var(--sidebar-w) 1fr;
+      gap: 18px;
+      padding: 18px;
+    }
+
+    .sidebar{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-width: 240px;
+    }
+
+    .sidebarTop{
+      padding: 14px 14px 10px 14px;
+      background: linear-gradient(180deg, rgba(77,163,255,.12), transparent 60%);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brandRow{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .brandTitle{
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .brandTitle .logo{
+      width: 34px; height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--brand), var(--brand2));
+      display: grid;
+      place-items: center;
+      box-shadow: 0 10px 20px rgba(77,163,255,.18);
+      flex: 0 0 auto;
+    }
+    .brandTitle .logo i{ color: white; }
+    .brandTitle .text{
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      min-width: 0;
+    }
+    .brandTitle .text strong{
+      font-size: 14px;
+      letter-spacing: .2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .brandTitle .text span{
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sidebarActions{
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 0 0 auto;
+    }
+
+    .iconBtn{
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 9px 10px;
+      cursor: pointer;
+      transition: transform .08s ease, background .2s ease, border-color .2s ease;
+    }
+    .iconBtn:hover{
+      background: rgba(255,255,255,.10);
+      border-color: rgba(255,255,255,.18);
+    }
+    .iconBtn:active{ transform: translateY(1px); }
+
+    .searchWrap{
+      margin-top: 10px;
+      position: relative;
+    }
+    .searchWrap i{
+      position: absolute;
+      left: 12px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 13px;
+      pointer-events: none;
+    }
+    #navSearch{
+      width: 100%;
+      padding: 10px 12px 10px 34px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,.10);
+      color: var(--text);
+      outline: none;
+    }
+    [data-theme="light"] #navSearch{ background: rgba(10,20,40,.04); }
+
+    .nav{
+      padding: 10px 6px 12px 6px;
+      overflow: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,.18) transparent;
+    }
+    .nav::-webkit-scrollbar{ width: 10px; }
+    .nav::-webkit-scrollbar-thumb{
+      background: rgba(255,255,255,.14);
+      border-radius: 10px;
+      border: 3px solid transparent;
+      background-clip: content-box;
+    }
+
+    .navGroupLabel{
+      padding: 8px 12px 6px 12px;
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .nav a{
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      margin: 3px 6px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      color: var(--text);
+      transition: background .18s ease, border-color .18s ease;
+      font-size: 13.5px;
+    }
+    .nav a .meta{
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      gap: 1px;
+    }
+    .nav a .meta span{
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .nav a:hover{
+      background: rgba(255,255,255,.06);
+      border-color: rgba(255,255,255,.10);
+    }
+    .nav a.active{
+      background: linear-gradient(135deg, rgba(77,163,255,.20), rgba(124,92,255,.14));
+      border-color: rgba(77,163,255,.35);
+    }
+
+    .main{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .topbar{
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: linear-gradient(180deg, rgba(34,197,94,.10), transparent 70%);
+    }
+
+    .titleBlock{ min-width: 0; }
+    .titleBlock h1{
+      margin: 0;
+      font-size: 16px;
+      letter-spacing: .2px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .titleBlock p{
+      margin: 4px 0 0 0;
+      color: var(--muted);
+      font-size: 12.5px;
+      max-width: 72ch;
+    }
+
+    .pill{
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .content{
+      padding: 18px;
+      overflow: auto;
+      scroll-behavior: smooth;
+    }
+
+    .doc{
+      max-width: 980px;
+      margin: 0 auto;
+      padding-bottom: 40px;
+    }
+
+    .doc h1, .doc h2, .doc h3{ scroll-margin-top: 16px; letter-spacing: .2px; }
+    .doc h1{ font-size: 28px; margin: 6px 0 10px; }
+    .doc h2{ font-size: 20px; margin: 22px 0 10px; }
+    .doc h3{ font-size: 16px; margin: 18px 0 8px; color: var(--text); }
+    .doc p{ margin: 10px 0; color: rgba(255,255,255,.92); }
+    [data-theme="light"] .doc p{ color: rgba(10,20,40,.92); }
+
+    pre, code{ font-family: var(--font-mono) !important; }
+    pre{
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      overflow: auto;
+      margin: 12px 0;
+    }
+
+    .mobileNavBtn{ display: none; }
+
+    @media (max-width: 980px){
+      body{ overflow: auto; }
+      .app{ height: auto; min-height: 100vh; grid-template-columns: 1fr; padding: 12px; }
+      .sidebar{
+        position: fixed;
+        inset: 12px 12px 12px auto;
+        width: min(86vw, 360px);
+        transform: translateX(110%);
+        transition: transform .22s ease;
+        z-index: 50;
+      }
+      .sidebar.open{ transform: translateX(0); }
+      .main{ min-height: calc(100vh - 24px); }
+      .mobileNavBtn{ display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    }
+
+    .overlay{
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+      z-index: 40;
+    }
+    .overlay.show{ display: block; }
+
+    :not(pre) > code[class*="language-"],
+    pre[class*="language-"]{ background: transparent; }
+
+    .muted{ color: var(--muted); }
+    .sep{ height: 1px; background: var(--border); margin: 14px 0; }
+
+    .docSection{ margin-top: 20px; }
+  </style>
+</head>
+
+<body data-theme="dark">
+  <div class="overlay" id="overlay"></div>
+
+  <div class="app">
+    <aside class="sidebar" id="sidebar" aria-label="Índice del handbook">
+      <div class="sidebarTop">
+        <div class="brandRow">
+          <div class="brandTitle">
+            <div class="logo" aria-hidden="true"><i class="fa-solid fa-compass"></i></div>
+            <div class="text">
+              <strong>SRE Pagos Globales</strong>
+              <span>Índice interactivo</span>
+            </div>
+          </div>
+
+          <div class="sidebarActions">
+            <button class="iconBtn" id="collapseSidebar" title="Cerrar (móvil)" aria-label="Cerrar índice">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="searchWrap" role="search">
+          <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+          <input id="navSearch" type="search" placeholder="Buscar en el índice..." autocomplete="off" />
+        </div>
+      </div>
+
+      <nav class="nav" id="nav">
+        <div class="navGroupLabel">Handbook</div>
+
+        <a href="#top" data-target="top">
+          <i class="fa-solid fa-book" aria-hidden="true"></i>
+          <div class="meta">
+            <strong>Inicio</strong>
+            <span>Portada</span>
+          </div>
+        </a>
+
+        <!--NAV_ITEMS-->
+      </nav>
+    </aside>
+
+    <main class="main" aria-label="Contenido del handbook">
+      <header class="topbar">
+        <div class="titleBlock">
+          <h1>
+            <button class="iconBtn mobileNavBtn" id="openSidebar" aria-label="Abrir índice" title="Índice">
+              <i class="fa-solid fa-bars"></i>
+            </button>
+            SRE Pagos Globales - Handbook
+            <span class="pill">Web</span>
+            <span class="pill">Búsqueda + Dark mode</span>
+          </h1>
+          <p>Contenido generado automáticamente desde los documentos del repositorio para deploy en Vercel/Netlify.</p>
+        </div>
+
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <button class="iconBtn" id="themeToggle" aria-label="Cambiar modo" title="Modo oscuro/claro">
+            <i class="fa-solid fa-moon"></i>
+          </button>
+          <a class="iconBtn" href="#top" title="Ir arriba" aria-label="Ir arriba">
+            <i class="fa-solid fa-arrow-up"></i>
+          </a>
+        </div>
+      </header>
+
+      <section class="content" id="content">
+        <article class="doc">
+          <div id="top"></div>
+
+          <!--CONTENT_ITEMS-->
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+
+  <script>
+    (function () {
+      const root = document.body;
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('overlay');
+      const content = document.getElementById('content');
+      const nav = document.getElementById('nav');
+      const navLinks = Array.from(nav.querySelectorAll('a[href^="#"]'));
+      const navSearch = document.getElementById('navSearch');
+
+      const openSidebarBtn = document.getElementById('openSidebar');
+      const collapseSidebarBtn = document.getElementById('collapseSidebar');
+
+      const themeToggle = document.getElementById('themeToggle');
+
+      const THEME_KEY = 'sre_handbook_theme';
+      function setTheme(theme) {
+        root.setAttribute('data-theme', theme);
+        const icon = themeToggle.querySelector('i');
+        icon.className = (theme === 'light') ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+      }
+      const savedTheme = localStorage.getItem(THEME_KEY);
+      setTheme(savedTheme || 'dark');
+
+      themeToggle.addEventListener('click', () => {
+        const next = (root.getAttribute('data-theme') === 'dark') ? 'light' : 'dark';
+        setTheme(next);
+        localStorage.setItem(THEME_KEY, next);
+      });
+
+      function openSidebar() {
+        sidebar.classList.add('open');
+        overlay.classList.add('show');
+      }
+      function closeSidebar() {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('show');
+      }
+      openSidebarBtn && openSidebarBtn.addEventListener('click', openSidebar);
+      collapseSidebarBtn.addEventListener('click', closeSidebar);
+      overlay.addEventListener('click', closeSidebar);
+
+      navLinks.forEach(a => {
+        a.addEventListener('click', (e) => {
+          e.preventDefault();
+          const id = a.getAttribute('href').slice(1);
+          const el = document.getElementById(id);
+          if (!el) return;
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          if (window.matchMedia('(max-width: 980px)').matches) closeSidebar();
+          history.replaceState(null, '', '#' + id);
+        });
+      });
+
+      navSearch.addEventListener('input', () => {
+        const q = navSearch.value.trim().toLowerCase();
+        navLinks.forEach(a => {
+          const text = a.innerText.toLowerCase();
+          a.style.display = text.includes(q) ? '' : 'none';
+        });
+      });
+
+      const sectionIds = navLinks
+        .map(a => a.getAttribute('href').slice(1))
+        .filter(id => !!document.getElementById(id));
+
+      const sections = sectionIds.map(id => document.getElementById(id));
+      const linkById = new Map(navLinks.map(a => [a.getAttribute('href').slice(1), a]));
+
+      function setActive(id) {
+        navLinks.forEach(a => a.classList.remove('active'));
+        const a = linkById.get(id);
+        if (a) a.classList.add('active');
+      }
+
+      let ticking = false;
+      content.addEventListener('scroll', () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+          ticking = false;
+          const top = content.scrollTop;
+          let currentId = sectionIds[0] || 'top';
+          for (const el of sections) {
+            const offsetTop = el.offsetTop;
+            if (offsetTop - 24 <= top) currentId = el.id;
+          }
+          setActive(currentId);
+        });
+      }, { passive: true });
+
+      function initActiveFromHash() {
+        const hash = (location.hash || '#top').slice(1);
+        if (document.getElementById(hash)) {
+          document.getElementById(hash).scrollIntoView({ behavior: 'auto', block: 'start' });
+          setActive(hash);
+        } else {
+          setActive('top');
+        }
+      }
+
+      initActiveFromHash();
+      setTimeout(() => { content.dispatchEvent(new Event('scroll')); }, 50);
+    })();
+  </script>
+</body>
+</html>
