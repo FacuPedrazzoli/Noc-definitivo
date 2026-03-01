@@ -66,7 +66,7 @@ export default function SectionPage({ params }: Props) {
 
   return (
     <div className="min-h-screen py-8 lg:py-12">
-      <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-10">
+      <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-10">
 
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-600 mb-8 flex-wrap">

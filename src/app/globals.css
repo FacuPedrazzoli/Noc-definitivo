@@ -156,21 +156,14 @@ html {
   @apply my-8 rounded-xl border border-slate-200 dark:border-slate-700
          bg-white dark:bg-slate-900/80;
   padding: 24px 20px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
 }
 .mermaid-wrapper svg {
   display: block;
   width: 100% !important;
   max-width: 100% !important;
   height: auto !important;
-  min-height: 60px;
-}
-/* Sequence / large diagrams: allow horizontal scroll at natural size */
-.mermaid-wrapper svg[width] {
-  width: auto !important;
-  max-width: none !important;
-  min-width: min(100%, 500px);
+  min-height: 80px;
 }
 
 /* ── Glossary cards ───────────────────────────────────────────────────── */
