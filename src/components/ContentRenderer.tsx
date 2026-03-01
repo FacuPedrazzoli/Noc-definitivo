@@ -73,6 +73,10 @@ export default function ContentRenderer({ html }: Props) {
             securityLevel: 'loose',
             theme: document.documentElement.classList.contains('dark') ? 'dark' : 'base',
             themeVariables: { primaryColor: '#6366f1', primaryTextColor: '#1e293b', lineColor: '#94a3b8' },
+            flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' },
+            sequence:  { useMaxWidth: true },
+            gantt:     { useMaxWidth: true },
+            journey:   { useMaxWidth: true },
           });
           const id = `mermaid-${Math.random().toString(36).slice(2, 8)}`;
           try {
@@ -82,7 +86,22 @@ export default function ContentRenderer({ html }: Props) {
             document.getElementById(`d${id}`)?.remove();
             // Mermaid 10 resolves with an error SVG on parse failure — detect it
             if (svg && !svg.toLowerCase().includes('syntax error') && !svg.includes('mermaid-error')) {
-              wrapper.innerHTML = svg;
+              // Make SVG fully responsive: ensure viewBox exists, strip fixed px dimensions
+              const tmp = document.createElement('div');
+              tmp.innerHTML = svg;
+              const svgEl = tmp.querySelector('svg');
+              if (svgEl) {
+                const w = svgEl.getAttribute('width');
+                const h = svgEl.getAttribute('height');
+                if (!svgEl.getAttribute('viewBox') && w && h) {
+                  svgEl.setAttribute('viewBox', `0 0 ${parseFloat(w)} ${parseFloat(h)}`);
+                }
+                svgEl.setAttribute('width', '100%');
+                svgEl.removeAttribute('height');
+                svgEl.style.maxWidth = '100%';
+                svgEl.style.height = 'auto';
+              }
+              wrapper.innerHTML = tmp.innerHTML;
             } else {
               wrapper.innerHTML = `<pre style="font-size:12px;color:#64748b;padding:14px;overflow:auto;background:transparent;border:none;">${diagramText}</pre>`;
             }
