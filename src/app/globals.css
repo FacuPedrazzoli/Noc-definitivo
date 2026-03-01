@@ -94,5 +94,63 @@ html {
 .doc-content strong { @apply font-semibold text-slate-900 dark:text-white; }
 .doc-content em { @apply italic text-slate-600 dark:text-slate-400; }
 
-/* Anchor links on headings */
+/* ── Scroll offset for sticky header ─────────────────────────────────── */
 .doc-content [id] { scroll-margin-top: 80px; }
+
+/* ── Anchor links on headings ─────────────────────────────────────────── */
+.doc-content h1,
+.doc-content h2,
+.doc-content h3,
+.doc-content h4 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.anchor-link {
+  opacity: 0;
+  color: #94a3b8;
+  text-decoration: none !important;
+  flex-shrink: 0;
+  transition: opacity 0.15s, color 0.15s;
+  line-height: 1;
+}
+.doc-content h1:hover .anchor-link,
+.doc-content h2:hover .anchor-link,
+.doc-content h3:hover .anchor-link,
+.doc-content h4:hover .anchor-link {
+  opacity: 1;
+}
+.anchor-link:hover { color: #6366f1; }
+
+/* ── Copy button on code blocks ───────────────────────────────────────── */
+.copy-btn {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.6rem;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(30, 41, 59, 0.85);
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.15s;
+  backdrop-filter: blur(4px);
+  line-height: 1;
+}
+.copy-btn:hover { color: #e2e8f0; border-color: rgba(148, 163, 184, 0.5); }
+.copy-btn.copied { color: #34d399; border-color: rgba(52, 211, 153, 0.4); }
+
+/* ── Mermaid diagrams ─────────────────────────────────────────────────── */
+.mermaid-wrapper {
+  @apply my-6 p-4 rounded-xl border border-slate-200 dark:border-slate-700
+         bg-white dark:bg-slate-900 overflow-x-auto flex justify-center;
+}
+.mermaid-wrapper svg {
+  max-width: 100%;
+  height: auto;
+}

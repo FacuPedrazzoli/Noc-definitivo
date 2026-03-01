@@ -6,6 +6,8 @@ const ROOT = process.cwd();
 const DOCX_FILE = 'La_Guia_Definitiva_del_NOC.docx';
 const OUTPUT_DIR = path.join(ROOT, 'src', 'content');
 const OUTPUT = path.join(OUTPUT_DIR, 'sections.json');
+const PUBLIC_DIR = path.join(ROOT, 'public');
+const SEARCH_OUTPUT = path.join(PUBLIC_DIR, 'search-index.json');
 
 function slugify(str) {
   return (str || '')
@@ -160,6 +162,17 @@ async function main() {
 
     await fs.writeFile(OUTPUT, JSON.stringify(data, null, 2), 'utf-8');
     console.log(`[prebuild] ✓ Written → ${OUTPUT}`);
+
+    // Generate search index for client-side full-text search
+    await fs.mkdir(PUBLIC_DIR, { recursive: true });
+    const searchIndex = sections.map((s, i) => ({
+      id: i,
+      slug: s.slug,
+      title: s.title,
+      text: stripTags(s.content).replace(/\s+/g, ' ').trim(),
+    }));
+    await fs.writeFile(SEARCH_OUTPUT, JSON.stringify(searchIndex), 'utf-8');
+    console.log(`[prebuild] ✓ Search index → ${SEARCH_OUTPUT}`);
   } catch (err) {
     console.error('[prebuild] ERROR:', err.message);
     const fallback = {

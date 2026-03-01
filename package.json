@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "framer-motion": "^11.0.14",
+    "mermaid": "^10.9.0",
     "lucide-react": "^0.344.0",
     "mammoth": "^1.6.0",
     "next": "14.2.3",
