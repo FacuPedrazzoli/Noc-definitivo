@@ -62,23 +62,35 @@ export default function ContentRenderer({ html }: Props) {
         );
 
       if (isMermaid) {
+        const diagramText = codeText.trim();
         const wrapper = document.createElement('div');
         wrapper.className = 'mermaid-wrapper';
-        wrapper.dataset.mermaid = codeText.trim();
         pre.replaceWith(wrapper);
-        import('mermaid').then((mod) => {
+        import('mermaid').then(async (mod) => {
           const mermaid = mod.default;
           mermaid.initialize({
             startOnLoad: false,
+            securityLevel: 'loose',
             theme: document.documentElement.classList.contains('dark') ? 'dark' : 'base',
             themeVariables: { primaryColor: '#6366f1', primaryTextColor: '#1e293b', lineColor: '#94a3b8' },
           });
           const id = `mermaid-${Math.random().toString(36).slice(2, 8)}`;
-          mermaid.render(id, codeText.trim()).then(({ svg }) => {
-            wrapper.innerHTML = svg;
-          }).catch(() => {
-            wrapper.innerHTML = `<pre class="text-xs text-red-400 p-3">${codeText}</pre>`;
-          });
+          try {
+            const { svg } = await mermaid.render(id, diagramText);
+            // Clean up any temp element Mermaid may have appended to <body>
+            document.getElementById(id)?.remove();
+            document.getElementById(`d${id}`)?.remove();
+            // Mermaid 10 resolves with an error SVG on parse failure — detect it
+            if (svg && !svg.toLowerCase().includes('syntax error') && !svg.includes('mermaid-error')) {
+              wrapper.innerHTML = svg;
+            } else {
+              wrapper.innerHTML = `<pre style="font-size:12px;color:#64748b;padding:14px;overflow:auto;background:transparent;border:none;">${diagramText}</pre>`;
+            }
+          } catch {
+            document.getElementById(id)?.remove();
+            document.getElementById(`d${id}`)?.remove();
+            wrapper.innerHTML = `<pre style="font-size:12px;color:#64748b;padding:14px;overflow:auto;background:transparent;border:none;">${diagramText}</pre>`;
+          }
         });
         return;
       }
