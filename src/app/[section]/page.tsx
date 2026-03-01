@@ -2,7 +2,6 @@ import { getSectionBySlug, getAllSections, getAdjacentSections } from '@/lib/con
 import { notFound } from 'next/navigation';
 import ContentRenderer from '@/components/ContentRenderer';
 import BackToTopButton from '@/components/BackToTopButton';
-import TocPanel from '@/components/TocPanel';
 import type { TocHeading } from '@/components/TOC';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, Hash, Home, Clock } from 'lucide-react';
@@ -66,9 +65,8 @@ export default function SectionPage({ params }: Props) {
   const headings = extractHeadings(section!.content);
 
   return (
-    <div className="flex min-h-screen">
-      {/* ── Main content column ── */}
-      <div className="flex-1 min-w-0 px-4 sm:px-6 lg:px-10 xl:pr-8 py-8 lg:py-12 max-w-[760px]">
+    <div className="min-h-screen py-8 lg:py-12">
+      <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-10">
 
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-600 mb-8 flex-wrap">
@@ -194,8 +192,6 @@ export default function SectionPage({ params }: Props) {
         </div>
       </div>
 
-      {/* ── Right TOC column (xl+) ── */}
-      <TocPanel headings={headings} />
     </div>
   );
 }
