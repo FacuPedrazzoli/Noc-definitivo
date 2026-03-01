@@ -5,6 +5,7 @@ import { Providers } from '@/components/Providers';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import ReadingProgress from '@/components/ReadingProgress';
+import LayoutShell from '@/components/LayoutShell';
 import { getContent, getAllSectionsMeta } from '@/lib/content';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
@@ -34,9 +35,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Header sections={sections} />
           <div className="flex min-h-screen pt-[59px]">
             <Sidebar sections={sections} totalSections={content.totalSections} />
-            <main className="flex-1 min-w-0 lg:ml-72">
+            <LayoutShell>
               {children}
-            </main>
+            </LayoutShell>
           </div>
         </Providers>
       </body>

@@ -118,6 +118,146 @@ export default function ContentRenderer({ html }: Props) {
       table.parentNode?.insertBefore(wrapper, table);
       wrapper.appendChild(table);
     });
+
+    // ── Glossary table → visual cards ──────────────────────────────────
+    el.querySelectorAll('.table-wrapper table, table').forEach((table) => {
+      const ths = Array.from(table.querySelectorAll('thead th'));
+      const headers = ths.map(th => th.textContent?.trim().toLowerCase() || '');
+
+      const terminoIdx = headers.findIndex(h =>
+        h.includes('término') || h.includes('termino') || h === 'term'
+      );
+      if (terminoIdx === -1) return;
+
+      const defIdx = headers.findIndex(h =>
+        h.includes('definici') || h.includes('descrip') || h.includes('definition')
+      );
+      const ctxIdx = headers.findIndex(h =>
+        h.includes('context') || h.includes('uso') || h.includes('categorí') || h.includes('categori')
+      );
+
+      const rows = Array.from(table.querySelectorAll('tbody tr'));
+      if (rows.length < 3) return; // too small to be worth converting
+
+      const CATEGORY_MAP: Record<string, string> = {
+        'iso': 'protocol', 'protocolo': 'protocol', 'mensajer': 'protocol',
+        'red': 'network', 'network': 'network', 'networking': 'network',
+        'conectiv': 'network',
+        'seguridad': 'security', 'security': 'security', 'pci': 'security',
+        'emv': 'security', 'criptograf': 'security',
+        'monitoreo': 'monitoring', 'observab': 'monitoring', 'métrica': 'monitoring',
+        'sre': 'sre', 'confiabilidad': 'sre', 'slo': 'sre', 'sli': 'sre',
+        'cultura': 'sre', 'gestión': 'sre',
+        'pago': 'payments', 'payment': 'payments', 'transacc': 'payments',
+        'adquir': 'payments', 'emisor': 'payments', 'autorizac': 'payments',
+        'incident': 'incident', 'incidente': 'incident', 'response': 'incident',
+        'proceso': 'incident',
+        'hardware': 'default', 'identificac': 'default', 'arquitectura': 'default',
+        'rol': 'default', 'legal': 'default', 'negocio': 'default',
+      };
+
+      function getBadgeClass(ctx: string): string {
+        const lower = ctx.toLowerCase();
+        for (const [key, cls] of Object.entries(CATEGORY_MAP)) {
+          if (lower.includes(key)) return `glossary-badge glossary-badge-${cls}`;
+        }
+        return 'glossary-badge glossary-badge-default';
+      }
+
+      // Build A-Z nav
+      const firstLetters = new Set<string>();
+      rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        const term = cells[terminoIdx]?.textContent?.trim() || '';
+        const letter = term.replace(/^\*+/, '').charAt(0).toUpperCase();
+        if (letter) firstLetters.add(letter);
+      });
+
+      const azNav = document.createElement('div');
+      azNav.className = 'glossary-az-nav';
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(letter => {
+        const btn = document.createElement('a');
+        btn.className = firstLetters.has(letter)
+          ? 'glossary-az-btn'
+          : 'glossary-az-btn inactive';
+        btn.textContent = letter;
+        if (firstLetters.has(letter)) {
+          btn.href = `#glos-${letter}`;
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const target = document.getElementById(`glos-${letter}`);
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          });
+        }
+        azNav.appendChild(btn);
+      });
+
+      // Build card grid
+      const grid = document.createElement('div');
+      grid.className = 'glossary-grid';
+
+      let currentLetter = '';
+      rows.forEach(row => {
+        const cells = Array.from(row.querySelectorAll('td'));
+        if (!cells.length) return;
+
+        const termEl = cells[terminoIdx];
+        const termText = termEl?.textContent?.replace(/\*/g, '').trim() || '';
+        const termHtml = termEl?.innerHTML || termText;
+        const defHtml = defIdx >= 0 ? (cells[defIdx]?.innerHTML || '') : '';
+        const ctxText = ctxIdx >= 0 ? (cells[ctxIdx]?.textContent?.trim() || '') : '';
+
+        if (!termText) return;
+
+        const slug = termText.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '').slice(0, 40);
+        const firstLetter = termText.replace(/^\*+/, '').charAt(0).toUpperCase();
+
+        // Insert letter anchor when letter changes
+        if (firstLetter !== currentLetter) {
+          currentLetter = firstLetter;
+          const anchor = document.createElement('div');
+          anchor.id = `glos-${firstLetter}`;
+          anchor.style.cssText = 'grid-column: 1/-1; padding: 4px 0 2px; font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.08em; scroll-margin-top:90px;';
+          anchor.textContent = firstLetter;
+          grid.appendChild(anchor);
+        }
+
+        const card = document.createElement('div');
+        card.className = 'glossary-card';
+        card.id = `glosario-${slug}`;
+
+        const COPY_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
+        const CHECK_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+
+        card.innerHTML = `
+          <div class="glossary-card-header">
+            ${ctxText ? `<span class="${getBadgeClass(ctxText)}">${ctxText}</span>` : '<span></span>'}
+            <button class="glossary-copy-btn" data-term="${termText.replace(/"/g, '&quot;')}" title="Copiar término">${COPY_SVG}</button>
+          </div>
+          <div class="glossary-card-term">${termHtml}</div>
+          ${defHtml ? `<div class="glossary-card-def">${defHtml}</div>` : ''}
+        `;
+
+        const copyBtn = card.querySelector('.glossary-copy-btn') as HTMLButtonElement;
+        copyBtn?.addEventListener('click', () => {
+          const term = copyBtn.dataset.term || '';
+          navigator.clipboard.writeText(term).then(() => {
+            copyBtn.innerHTML = CHECK_SVG;
+            setTimeout(() => { copyBtn.innerHTML = COPY_SVG; }, 2000);
+          });
+        });
+
+        grid.appendChild(card);
+      });
+
+      // Replace table (or wrapper) with az nav + grid
+      const container = document.createElement('div');
+      container.appendChild(azNav);
+      container.appendChild(grid);
+
+      const parent = table.closest('.table-wrapper') || table;
+      parent.replaceWith(container);
+    });
   }, [html]);
 
   return (

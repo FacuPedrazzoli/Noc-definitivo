@@ -3,9 +3,9 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { ChevronRight, ChevronDown, LayoutDashboard } from 'lucide-react';
+import { ChevronRight, ChevronDown, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useMobileMenu } from './Providers';
+import { useMobileMenu, useSidebar } from './Providers';
 
 interface SectionMeta {
   id: string;
@@ -28,30 +28,84 @@ export default function Sidebar({ sections, totalSections }: Props) {
   const pathname = usePathname();
   const [expanded, setExpanded] = useState<string | null>(null);
   const { isOpen, close } = useMobileMenu();
+  const { collapsed, toggle: toggleCollapse } = useSidebar();
 
-  // Auto-expand active section
   useEffect(() => {
     const active = sections.find((s) => `/${s.slug}` === pathname);
     if (active) setExpanded(active.id);
   }, [pathname, sections]);
 
-  const inner = (
+  /* ── Collapsed icon-only bar ─────────────────────────────────────────── */
+  const collapsedBar = (
     <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="px-4 py-4 border-b border-slate-100 dark:border-slate-800">
+      <div className="flex items-center justify-center py-[15px] border-b border-slate-100 dark:border-slate-800">
+        <button
+          onClick={toggleCollapse}
+          className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400
+            hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          title="Expandir sidebar"
+        >
+          <PanelLeftOpen size={16} />
+        </button>
+      </div>
+      <nav className="flex-1 overflow-y-auto py-2 flex flex-col items-center gap-0.5">
+        <Link
+          href="/"
+          title="Inicio"
+          className={`flex items-center justify-center w-9 h-9 rounded-xl text-base transition-all duration-150 relative ${
+            pathname === '/'
+              ? 'bg-indigo-50 dark:bg-indigo-950/50'
+              : 'hover:bg-slate-100 dark:hover:bg-slate-800/80'
+          }`}
+        >
+          🏠
+          {pathname === '/' && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-indigo-500 rounded-r" />}
+        </Link>
+        <div className="w-6 h-px bg-slate-100 dark:bg-slate-800 my-1" />
+        {sections.map((section, i) => {
+          const isActive = pathname === `/${section.slug}`;
+          return (
+            <Link
+              key={section.id}
+              href={`/${section.slug}`}
+              title={section.title}
+              className={`flex items-center justify-center w-9 h-9 rounded-xl text-base transition-all duration-150 relative ${
+                isActive
+                  ? 'bg-indigo-50 dark:bg-indigo-950/50'
+                  : 'hover:bg-slate-100 dark:hover:bg-slate-800/80'
+              }`}
+            >
+              {SECTION_ICONS[i % SECTION_ICONS.length]}
+              {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-indigo-500 rounded-r" />}
+            </Link>
+          );
+        })}
+      </nav>
+    </div>
+  );
+
+  /* ── Expanded full sidebar ───────────────────────────────────────────── */
+  const expandedBar = (
+    <div className="flex flex-col h-full">
+      <div className="px-3 py-[13px] border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
         <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-          <LayoutDashboard size={13} />
           <span>Contenido</span>
-          <span className="ml-auto bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400
+          <span className="bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400
             border border-indigo-100 dark:border-indigo-900 rounded-full px-2 py-0.5 font-mono text-[10px]">
             {totalSections}
           </span>
         </div>
+        <button
+          onClick={toggleCollapse}
+          className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400
+            hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          title="Colapsar sidebar"
+        >
+          <PanelLeftClose size={14} />
+        </button>
       </div>
 
-      {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-3 px-2">
-        {/* Home link */}
         <Link
           href="/"
           onClick={close}
@@ -64,15 +118,12 @@ export default function Sidebar({ sections, totalSections }: Props) {
           <span className="text-base">🏠</span>
           <span>Inicio</span>
         </Link>
-
         <div className="h-px bg-slate-100 dark:bg-slate-800 my-2 mx-1" />
 
-        {/* Sections */}
         {sections.map((section, i) => {
           const href = `/${section.slug}`;
           const isActive = pathname === href;
           const isExpanded = expanded === section.id || isActive;
-
           return (
             <div key={section.id} className="mb-0.5">
               <div className="flex items-center gap-1">
@@ -102,7 +153,6 @@ export default function Sidebar({ sections, totalSections }: Props) {
                   </button>
                 )}
               </div>
-
               <AnimatePresence initial={false}>
                 {isExpanded && section.subsections.length > 0 && (
                   <motion.div
@@ -136,10 +186,9 @@ export default function Sidebar({ sections, totalSections }: Props) {
         })}
       </nav>
 
-      {/* Footer */}
       <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-800">
         <p className="text-[11px] text-slate-400 dark:text-slate-600 text-center">
-          Guía Definitiva del NOC · v1.0
+          NOC → SRE Handbook · v2.0
         </p>
       </div>
     </div>
@@ -147,12 +196,16 @@ export default function Sidebar({ sections, totalSections }: Props) {
 
   return (
     <>
-      {/* Desktop sidebar */}
-      <aside className="hidden lg:flex flex-col fixed left-0 top-[59px] bottom-0 w-72
-        border-r border-slate-200 dark:border-slate-800
-        bg-white dark:bg-slate-950 z-30">
-        {inner}
-      </aside>
+      {/* Desktop sidebar — animates width */}
+      <motion.aside
+        animate={{ width: collapsed ? 64 : 288 }}
+        transition={{ duration: 0.25, ease: 'easeInOut' }}
+        className="hidden lg:flex flex-col fixed left-0 top-[59px] bottom-0 overflow-hidden
+          border-r border-slate-200 dark:border-slate-800
+          bg-white dark:bg-slate-950 z-30"
+      >
+        {collapsed ? collapsedBar : expandedBar}
+      </motion.aside>
 
       {/* Mobile overlay */}
       <AnimatePresence>
@@ -174,7 +227,7 @@ export default function Sidebar({ sections, totalSections }: Props) {
                 border-r border-slate-200 dark:border-slate-800
                 bg-white dark:bg-slate-950 z-50 pt-[59px]"
             >
-              {inner}
+              {expandedBar}
             </motion.aside>
           </>
         )}
